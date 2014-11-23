@@ -1,5 +1,5 @@
 ---
-title: "Activity Recognition Machine Learinig Coursera Assignment"
+title: "Activity Recognition Machine Learning Coursera Assignment"
 author: "Omar Gomez"
 date: "November 23, 2014"
 output:
@@ -15,7 +15,7 @@ require(randomForest)
 Executive Summary
 -----------------
 
-From Medicine to Social sciences, Human Activity Recognition (HAR) has raised as an important field with many applications. This article shows how Machine Learning techniques can be used to identify different kinds of activties when working out with a dumbbell, more specifically it differiantes good executions from bad executions using data recollected by sensors attached to the performer. 
+From Medicine to Social studies, Human Activity Recognition (HAR) has raised as an important field with many applications. This article shows how Machine Learning techniques can be used to identify different kinds of activties when working out with a dumbbell, more specifically it differentiates good executions from bad executions using data recollected by sensors attached to the performer. 
 
 Data cleaning and exploration
 -----------------------------
@@ -28,11 +28,11 @@ training_csv<-read.csv("pml-training.csv",na.strings=c("NA",""))
 
 This data set contains `r nrow(training_csv)` rows and `r ncol(training_csv)` columns. 
 
-Since no documentation on the structure of the data set exists, it is hopped the data be self explanatory. 
+Since no documentation on the structure of the data set exists, it is expected the data be self explanatory. 
 
 ### Cleaning
 
-The first seven columns contains sequence or timestamp information specific for the experiment and is of no use for this study:
+The first seven columns contain sequence or timestamp information specific for this run of experiment and is unusable for this study:
 
 ```{r}
 colnames( training_csv[,1:7] )
@@ -51,7 +51,7 @@ not_na <- apply(!is.na(training_no_seq),2,sum) == nrow(training_no_seq)
 training<-training_no_seq[,not_na]
 ```
 
-Our final data sets gets reduced to just `r ncol(training)` variables. These variables recollect data from the four sensors used for the study: one on the belt and three more on the arm, the wirst, and the dumbbell itself (dumbbell variables are shown):
+Our final data sets gets reduced to just `r ncol(training)` variables. These variables recollect data from the four sensors used for the study: one on the belt and three more on the arm, the forearm, and the dumbbell itself (dumbbell variables are shown):
 
 ```{r}
 cnames <- colnames( training )
@@ -87,7 +87,7 @@ har_test <- training[-inTrain,]
 c( nrow(har_train), nrow(har_test) )
 ```
 
-And then lets fit our model using Random Forest ( This was chosen due to its accuracy and low overfitting ):
+And then let's fit our model using Random Forest ( This was chosen due to its accuracy and low overfitting ):
 
 ```{r}
 fit <- randomForest( classe ~ ., data=har_train )
@@ -103,7 +103,7 @@ Analysis
 varImpPlot(fit)
 ```
 
-This graph shows how each variable adds information to our model, we can conclude for example that sensors at the belt and the dumbbell were the most effective.
+This graph shows how each variable adds information to our model, we can conclude that sensors at the belt and the dumbbell were the ones that added the most information.
 
 ### Accuracy
 
@@ -128,7 +128,7 @@ result_train$overall
 result_test$overall
 ```
 
-With only 20 misses in our out of sample prediction, we have found a high accuracy model.
+With only 20 misses in our out of sample prediction, we have found a high-accuracy model.
 
 Prediction
 ----------
