@@ -1,0 +1,141 @@
+---
+title: "Activity Recognition Machine Learinig Coursera Assignment"
+author: "Omar Gomez"
+date: "November 23, 2014"
+output: html_document
+---
+```{r results='hide', echo=FALSE, message=FALSE }
+require(caret)
+require(ggplot2)
+require(randomForest)
+```
+
+Executive Summary
+-----------------
+
+From Medicine to Social sciences, Human Activity Recognition (HAR) has raised as an important field with many applications. This article shows how Machine Learning techniques can be used to identify different kinds of activties when working out with a dumbbell, more specifically it differiantes good executions from bad executions using data recollected by sensors attached to the performer. 
+
+Data cleaning and exploration
+-----------------------------
+
+The data for this study come from previous work. It uses results obtained by Velloso and others for a research titled [Qualitative Activity Recognition of Weight Lifting Exercises](http://groupware.les.inf.puc-rio.br/work.jsf?p1=11201). The training data set was made available by Coursera and can be downloaded from [https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv](https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv).
+
+```{r}
+training_csv<-read.csv("pml-training.csv",na.strings=c("NA",""))
+```
+
+This data set contains `r nrow(training_csv)` rows and `r ncol(training_csv)` columns. 
+
+Since no documentation on the structure of the data set exists, it is hopped the data be self explanatory. 
+
+### Cleaning
+
+The first seven columns contains sequence or timestamp information specific for the experiment and is of no use for this study:
+
+```{r}
+colnames( training_csv[,1:7] )
+```
+
+The first step is to clean these columns:
+
+```{r}
+training_no_seq <- training_csv[,-(1:7)]
+```
+
+There are also columns designed to hold aggregate data that in this sample contains NA's, so secondly we get rif of this columns:
+
+```{r}
+not_na <- apply(!is.na(training_no_seq),2,sum) == nrow(training_no_seq)
+training<-training_no_seq[,not_na]
+```
+
+Our final data sets gets reduced to just `r ncol(training)` variables. These variables recollect data from the four sensors used for the study: one on the belt and three more on the arm, the wirst, and the dumbbell itself (dumbbell variables are shown):
+
+```{r}
+cnames <- colnames( training )
+cnames[ grepl("dumbbell", cnames) ]
+```
+
+These are 13 variables with lectures from the magnetometer (x,y,z), the accelerometer (x,y,z,total) and the gyroscope (x,y,z,roll,pitch,yaw).
+
+There is just one more variable, 'classe' which is actually the one we want to predict from the other ones, it's a 5 level variable:
+
+```{r}
+levels(training$classe)
+```
+
+These values correspond to:
+
+* A: Execution according to specification
+* B: Throwing the elbows to the front
+* C: Lifting the dumbbell only halfway
+* D: Lowering the dumbbell only halfway
+* E: Throwing the hips to the front
+
+The Model
+---------
+
+Let's apply Tree techniques to predict the class of the activity performed using our sensor data. First step is partition our data:
+
+```{r}
+set.seed(1234)
+inTrain <- createDataPartition( y=training$classe, p=0.7, list=FALSE )
+har_train <- training[inTrain,]
+har_test <- training[-inTrain,]
+c( nrow(har_train), nrow(har_test) )
+```
+
+And then lets fit our model using Random Forest ( This was chosen due to its accuracy and low overfitting ):
+
+```{r}
+fit <- randomForest( classe ~ ., data=har_train )
+print(fit)
+```
+
+Analysis
+--------
+
+### Variable Importance
+
+```{r, echo=FALSE, message=FALSE}
+varImpPlot(fit)
+```
+
+This graph shows how each variable adds information to our model, we can conclude for example that sensors at the belt and the dumbbell were the most effective.
+
+### Accuracy
+
+```{r}
+pred_train <- predict(fit, har_train)
+result_train <- confusionMatrix(pred_train, har_train$classe)
+pred_test <- predict(fit, har_test)
+result_test <- confusionMatrix(pred_test, har_test$classe)
+result_test
+```
+
+**In Sample Accuracy**
+
+```{r}
+result_train$overall
+```
+
+
+**Out of Sample Accuracy**
+
+```{r}
+result_test$overall
+```
+
+With only 20 misses in our out of sample prediction, we have found a high accuracy model.
+
+Prediction
+----------
+
+Let's predict our testing sample:
+
+```{r}
+testing_csv<-read.csv("pml-testing.csv",na.strings=c("NA",""))
+testing_csv$prediction <- predict(fit, testing_csv)
+testing_csv[, c("problem_id","prediction")]
+```
+
